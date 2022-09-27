@@ -1,4 +1,4 @@
-# SDET Test Task
+# Playwright Test Task
 
 ##Coding task:
 Требуется написать автотест на проверку наличия трейлера у видео.
