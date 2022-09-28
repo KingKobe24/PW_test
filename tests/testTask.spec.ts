@@ -1,30 +1,35 @@
 import { test, expect } from '@playwright/test'
-import { TestPage } from '../pages/testPage'
-import { TRESHHOLD_PIXELS, TIMEOUT_FOR_LOADING, BASE_PATH} from '../constants'
+import { SearchVideoPage } from '../pages/searchVideoPage'
+import { TRESHHOLD_PIXELS, TIMEOUT_FOR_VIDEO_LOADING } from '../constants'
 const fs = require('fs')
 const PNG = require('pngjs').PNG
 const pixelmatch = require('pixelmatch')
 
 test.describe('Trailer checkout', () => {
     test('Check \'ураган\' video trailer', async ({ page }) => {
-        const testPage = new TestPage(page)
+        const search_item = 'ураган'
+        const videoNumber = 4
+        let screenshotCount = 0
 
-        await testPage.open()
-        await testPage.search('ураган')
-        await page.waitForTimeout(TIMEOUT_FOR_LOADING)
-        const coordinates = await testPage.findVideoBox()
-        await testPage.takeScreenshot()
+        const searchPage = new SearchVideoPage(page)
 
-        await page.mouse.move(coordinates.x, coordinates.y)
-        await page.waitForTimeout(TIMEOUT_FOR_LOADING)
-        await testPage.takeScreenshot()
+        await searchPage.open()
+        await searchPage.search(search_item)
 
-        const {data, width, height} = PNG.sync.read(fs.readFileSync(`${BASE_PATH}/screenshot_0.png`))
-        const {data: expectData} = PNG.sync.read(fs.readFileSync(`${BASE_PATH}/screenshot_1.png`))
+        await searchPage.moveToVideoBox(searchPage.videoBoxes, videoNumber)
+        const first_screenshot = await searchPage.takeScreenshot(searchPage.videoBoxes, videoNumber, screenshotCount)
+        screenshotCount +=1
+        await page.waitForTimeout(TIMEOUT_FOR_VIDEO_LOADING)
+
+        const second_screenshot = await searchPage.takeScreenshot(searchPage.videoBoxes, videoNumber,screenshotCount)
+
+        const {data, width, height} = PNG.sync.read(fs.readFileSync(first_screenshot))
+        const {data: expectData} = PNG.sync.read(fs.readFileSync(second_screenshot))
         const {data: diffData} = new PNG({width, height})
-
         const numDiffPixels = pixelmatch(data, expectData, diffData, width, height, { treshhold: 0.2 })
 
         await expect(numDiffPixels).toBeGreaterThan(TRESHHOLD_PIXELS)
+
+        await page.waitForTimeout(10000)
     })
 })
