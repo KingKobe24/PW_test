@@ -1,3 +1,4 @@
+require('dotenv').config()
 import type {Locator, Page} from '@playwright/test'
 import { BASE_PATH_SCREENSHOTS } from '../constants'
 
@@ -10,8 +11,8 @@ export class SearchVideoPage {
     constructor(page: Page) {
         this.page = page
         this.inputSearchBox = page.locator('input[name=\'text\']')
-        this.videoBoxes = page.locator('div.thumb-image__shadow')
-        this.homePage = 'https://yandex.ru/video/'
+        this.videoBoxes = page.locator('.thumb-image__shadow')
+        this.homePage = process.env.BASE_URL
 
     }
     async open() {
@@ -30,7 +31,6 @@ export class SearchVideoPage {
         else {
             await locator.nth(elementNumber).hover()
         }
-
     }
 
     async takeScreenshot(locator: Locator, elementNumber: number, iterator: number) {
